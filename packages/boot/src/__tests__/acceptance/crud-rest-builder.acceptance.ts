@@ -6,10 +6,14 @@
 import {ApplicationConfig} from '@loopback/core';
 import {juggler, RepositoryMixin} from '@loopback/repository';
 import {RestApplication} from '@loopback/rest';
-import {CrudRestComponent} from '@loopback/rest-crud';
+import {
+  CrudRestComponent,
+  defineCrudRepositoryClass,
+} from '@loopback/rest-crud';
 import {expect, givenHttpServerConfig, TestSandbox} from '@loopback/testlab';
 import {resolve} from 'path';
 import {BootMixin, ModelApiBooter} from '../..';
+import {Product} from '../fixtures/product.model';
 
 describe('CRUD rest builder acceptance tests', () => {
   let app: BooterApp;
@@ -47,6 +51,42 @@ module.exports = {
     expect(app.getBinding('repositories.ProductRepository').key).to.eql(
       'repositories.ProductRepository',
     );
+
+    expect(app.getBinding('controllers.ProductController').key).to.eql(
+      'controllers.ProductController',
+    );
+  });
+
+  it('uses bound repository class if it exists', async () => {
+    await sandbox.copyFile(
+      resolve(__dirname, '../fixtures/product.model.js'),
+      'models/product.model.js',
+    );
+
+    await sandbox.writeTextFile(
+      'model-endpoints/product.rest-config.js',
+      `
+const {Product} = require('../models/product.model');
+module.exports = {
+  model: Product,
+  pattern: 'CrudRest',
+  dataSource: 'db',
+  basePath: '/products',
+};
+      `,
+    );
+
+    const ProductRepository = defineCrudRepositoryClass(Product);
+    app.repository(ProductRepository);
+
+    const binding = app.getBinding('repositories.ProductRepository');
+    expect(binding.key).to.eql('repositories.ProductRepository');
+
+    // Boot & start the application
+    await app.boot();
+    await app.start();
+
+    expect(app.getBinding('repositories.ProductRepository')).to.eql(binding);
 
     expect(app.getBinding('controllers.ProductController').key).to.eql(
       'controllers.ProductController',

@@ -50,11 +50,22 @@ export class CrudRestApiBuilder implements ModelApiBuilder {
     }
     const entityClass = modelClass as typeof Entity & {prototype: Entity};
 
-    // TODO Check if the repository class has been already defined.
-    // If yes, then skip creation of the default repository
-    const repositoryClass = setupCrudRepository(entityClass, config);
-    application.repository(repositoryClass);
-    debug('Registered repository class', repositoryClass.name);
+    let repoClassName = entityClass.name + 'Repository';
+
+    try {
+      application.getBinding('repositories.' + repoClassName);
+      debug(
+        'Using repository class',
+        repoClassName,
+        ', as it is already bound to application',
+      );
+    } catch {
+      // repository class does not exist
+      const repositoryClass = setupCrudRepository(entityClass, config);
+      application.repository(repositoryClass);
+      repoClassName = repositoryClass.name;
+      debug('Registered repository class', repoClassName);
+    }
 
     const controllerClass = setupCrudRestController(entityClass, config);
     application.controller(controllerClass);
