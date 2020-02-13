@@ -45,21 +45,20 @@ export class CrudRestApiBuilder implements ModelApiBuilder {
 
     if (!(modelClass.prototype instanceof Entity)) {
       throw new Error(
-        `CrudRestController requires an Entity, Models are not supported. (Model name: ${modelName})`,
+        `CrudRestController requires a model that extends 'Entity'. (Model name ${modelName} does not extend 'Entity')`,
       );
     }
     const entityClass = modelClass as typeof Entity & {prototype: Entity};
 
     let repoClassName = entityClass.name + 'Repository';
 
-    try {
-      application.getBinding('repositories.' + repoClassName);
+    if (application.isBound('repositories.' + repoClassName)) {
       debug(
         'Using repository class',
         repoClassName,
         ', as it is already bound to application',
       );
-    } catch {
+    } else {
       // repository class does not exist
       const repositoryClass = setupCrudRepository(entityClass, config);
       application.repository(repositoryClass);
@@ -79,19 +78,15 @@ export class CrudRestApiBuilder implements ModelApiBuilder {
  * Set up a CRUD Repository class for the given Entity class.
  *
  * @param entityClass - the Entity class the repository is built for
- * @param modelConfig - configuration of the Entity class
+ * @param config - configuration of the Entity class
  */
 function setupCrudRepository(
   entityClass: typeof Entity & {prototype: Entity},
-  modelConfig: ModelCrudRestApiConfig,
+  config: ModelCrudRestApiConfig,
 ): Class<EntityCrudRepository<Entity, unknown>> {
   const repositoryClass = defineCrudRepositoryClass(entityClass);
 
-  inject(`datasources.${modelConfig.dataSource}`)(
-    repositoryClass,
-    undefined,
-    0,
-  );
+  inject(`datasources.${config.dataSource}`)(repositoryClass, undefined, 99);
 
   return repositoryClass;
 }
@@ -100,17 +95,17 @@ function setupCrudRepository(
  * Set up a CRUD Controller class for the given Entity class.
  *
  * @param entityClass - the Entity class the controller is built for
- * @param modelConfig - configuration of the Entity class
+ * @param config - configuration of the Entity class
  */
 function setupCrudRestController(
   entityClass: typeof Entity & {prototype: Entity},
-  modelConfig: ModelCrudRestApiConfig,
+  config: ModelCrudRestApiConfig,
 ): ControllerClass {
   const controllerClass = defineCrudRestController(
     entityClass,
     // important - forward the entire config object to allow controller
     // factories to accept additional (custom) config options
-    modelConfig,
+    config,
   );
 
   inject(`repositories.${entityClass.name}Repository`)(

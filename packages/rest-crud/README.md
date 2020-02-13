@@ -40,7 +40,8 @@ export class TryApplication extends BootMixin(
 ```
 
 Create a new file for the configuration, e.g.
-`src/model-endpoints/product.rest-config.ts`:
+`src/model-endpoints/product.rest-config.ts` that defines the `model`,
+`pattern`, `dataSource`, and `basePath` properties:
 
 ```ts
 import {ModelCrudRestApiConfig} from '@loopback/rest-crud';
