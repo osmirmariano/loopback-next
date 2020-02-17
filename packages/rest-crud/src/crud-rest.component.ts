@@ -4,7 +4,7 @@
 // License text available at https://opensource.org/licenses/MIT
 
 import {Component, createBindingFromClass} from '@loopback/core';
-import {CrudRestApiBuilder} from './crud-rest-builder.plugin';
+import {CrudRestApiBuilder} from './crud-rest.api-builder';
 
 export class CrudRestComponent implements Component {
   bindings = [createBindingFromClass(CrudRestApiBuilder)];

@@ -16,7 +16,9 @@ npm install --save @loopback/rest-crud
 ## Basic use
 
 `@loopback/rest-crud` can be used along with `@loopback/model-api-builder` to
-easily create a repository class and a controller class for your model.
+easily create a repository class and a controller class for your model. The
+following use is a simple approach for this creation, however, you can look at
+the "Advanced use" section instead for a more flexible approach.
 
 For the examples in the following sections, we are assuming a model named
 `Product` and a datasource named `db` have already been created.
@@ -49,7 +51,7 @@ import {Product} from '../models';
 
 module.exports = <ModelCrudRestApiConfig>{
   model: Product,
-  pattern: 'CrudRest',
+  pattern: 'CrudRest', // make sure to use this pattern
   dataSource: 'db',
   basePath: '/products',
 };
@@ -60,9 +62,11 @@ class defined without the need for a repository or controller class file.
 
 ## Advanced use
 
-`@loopback/rest-crud` also exposes two helper methods
-(`defineCrudRestController` and `defineCrudRepositoryClass`) for creating
-controllers and respositories using code.
+If you would like more flexibility, e.g. if you would only like to define a
+default `CrudRest` controller or repository, you can use the two helper methods
+(`defineCrudRestController` and `defineCrudRepositoryClass`) exposed from
+`@loopback/rest-crud`. These functions will help you create controllers and
+respositories using code.
 
 For the examples in the following sections, we are also assuming a model named
 `Product`, and a datasource named `db` have already been created.

@@ -27,6 +27,9 @@ describe('CRUD rest builder acceptance tests', () => {
       'models/product.model.js',
     );
 
+    // when creating the config file in a real app, make sure to use
+    // module.exports = <ModelCrudRestApiConfig>{...}
+    // it's not used here because this is a .js file
     await sandbox.writeTextFile(
       'model-endpoints/product.rest-config.js',
       `
@@ -67,6 +70,7 @@ module.exports = {
   model: Product,
   pattern: 'CrudRest',
   dataSource: 'db',
+  // basePath not specified
 };
       `,
     );
@@ -88,6 +92,7 @@ module.exports = {
       `
 const {NoEntity} = require('../models/no-entity.model');
 module.exports = {
+  // this model extends Model, not Entity
   model: NoEntity,
   pattern: 'CrudRest',
   dataSource: 'db',
@@ -119,10 +124,7 @@ module.exports = {
   }
 
   async function stopApp() {
-    try {
-      await app.stop();
-    } catch (err) {
-      // application is booting
-    }
+    if (app.state !== 'started') return;
+    await app.stop();
   }
 });

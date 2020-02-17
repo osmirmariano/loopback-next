@@ -3,7 +3,13 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {bind, ControllerClass, inject} from '@loopback/core';
+import {
+  bind,
+  BindingSelector,
+  Constructor,
+  ControllerClass,
+  inject,
+} from '@loopback/core';
 import {
   asModelApiBuilder,
   ModelApiBuilder,
@@ -86,7 +92,10 @@ function setupCrudRepository(
 ): Class<EntityCrudRepository<Entity, unknown>> {
   const repositoryClass = defineCrudRepositoryClass(entityClass);
 
-  inject(`datasources.${config.dataSource}`)(repositoryClass, undefined, 99);
+  injectFirstConstructorArg(
+    repositoryClass,
+    `datasources.${config.dataSource}`,
+  );
 
   return repositoryClass;
 }
@@ -108,11 +117,28 @@ function setupCrudRestController(
     config,
   );
 
-  inject(`repositories.${entityClass.name}Repository`)(
+  injectFirstConstructorArg(
     controllerClass,
-    undefined,
-    0,
+    `repositories.${entityClass.name}Repository`,
   );
 
   return controllerClass;
+}
+
+/**
+ * Inject given key into a given class constructor
+ *
+ * @param ctor - constructor for a class (e.g. a controller class)
+ * @param key - binding to use in order to resolve the value of the decorated
+ * constructor parameter or property
+ */
+function injectFirstConstructorArg<T>(
+  ctor: Constructor<T>,
+  key: BindingSelector,
+) {
+  inject(key)(
+    ctor,
+    undefined /* constructor member */,
+    0 /* the first argument */,
+  );
 }
